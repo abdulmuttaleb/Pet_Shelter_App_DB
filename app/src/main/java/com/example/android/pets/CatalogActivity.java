@@ -19,6 +19,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -91,12 +92,6 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         String[] projection = {
                 PetEntry._ID,
@@ -107,7 +102,10 @@ public class CatalogActivity extends AppCompatActivity {
         };
         String[] selection = {};
 
-        Cursor cursor = db.query(PetEntry.TABLE_NAME, projection, null, null, null, null, null);
+        //Cursor cursor = db.query(PetEntry.TABLE_NAME, projection, null, null, null, null, null);
+
+        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI,projection,null,null,null);
+
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
 
         try {
@@ -152,8 +150,6 @@ public class CatalogActivity extends AppCompatActivity {
 
     private void insertPet(){
 
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
         ContentValues values = new ContentValues();
 
         values.put(PetEntry.COLUMN_PET_NAME, "Toto");
@@ -161,9 +157,7 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
         values.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
-        Long newRowId = db.insert(PetEntry.TABLE_NAME,null,values);
-
-        Log.v("CatalogActivity", "New Row ID: " + newRowId);
+        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
     }
 
 }
