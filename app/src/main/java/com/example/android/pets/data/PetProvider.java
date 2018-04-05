@@ -13,6 +13,8 @@ import android.util.Log;
 
 import com.example.android.pets.data.PetContract.PetEntry;
 
+import java.sql.SQLData;
+
 /**
  * Created by ahmed on 3/29/2018.
  */
@@ -63,13 +65,42 @@ public class PetProvider extends ContentProvider {
     }
 
     @Override
-    public int update( Uri uri, ContentValues contentValues, String s, String[] strings) {
-        return 0;
+    public int update( Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+
+        final int match = sUriMatcher.match(uri);
+        switch (match){
+            case PETS:
+                return updatePet(uri, contentValues,selection, selectionArgs );
+
+            case PET_ID:
+                selection = PetEntry._ID + "=?";
+                selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
+                return updatePet(uri, contentValues,selection, selectionArgs);
+            default:
+                throw new IllegalArgumentException("Update isn't supported for uri " + uri);
+        }
     }
 
     @Override
-    public int delete( Uri uri, String s, String[] strings) {
-        return 0;
+    public int delete( Uri uri, String selection, String[] selectionArgs) {
+
+        final int match = sUriMatcher.match(uri);
+
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+        switch(match){
+            case PETS:
+
+                return database.delete(PetEntry.TABLE_NAME,selection,selectionArgs);
+            case PET_ID:
+                selection = PetEntry._ID + "=?";
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+
+                return database.delete(PetEntry.TABLE_NAME,selection,selectionArgs);
+
+            default:
+                throw new IllegalArgumentException("Deletion isn't supported for uri "+uri);
+        }
     }
 
     @Override
@@ -128,5 +159,37 @@ public class PetProvider extends ContentProvider {
 
         // Return the new URI with the ID (of the newly inserted row) appended at the end
         return ContentUris.withAppendedId(uri, id);
+    }
+
+    private int updatePet(Uri uri, ContentValues values, String selection, String[] selectionArgs){
+        if (values.containsKey(PetEntry.COLUMN_PET_NAME)) {
+            String name = values.getAsString(PetEntry.COLUMN_PET_NAME);
+            if (name == null) {
+                throw new IllegalArgumentException("Pet requires a name");
+            }
+        }
+
+        if (values.containsKey(PetEntry.COLUMN_PET_GENDER)) {
+            Integer gender = values.getAsInteger(PetEntry.COLUMN_PET_GENDER);
+            if (gender == null || !PetEntry.isValidGender(gender)) {
+                throw new IllegalArgumentException("Pet requires valid gender");
+            }
+        }
+
+        if (values.containsKey(PetEntry.COLUMN_PET_WEIGHT)) {
+            // Check that the weight is greater than or equal to 0 kg
+            Integer weight = values.getAsInteger(PetEntry.COLUMN_PET_WEIGHT);
+            if (weight != null && weight < 0) {
+                throw new IllegalArgumentException("Pet requires valid weight");
+            }
+        }
+
+        if(values.size() == 0){
+            return 0;
+        }
+
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+        return database.update(PetEntry.TABLE_NAME,values,selection, selectionArgs);
     }
 }
