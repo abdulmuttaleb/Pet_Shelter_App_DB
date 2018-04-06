@@ -148,14 +148,16 @@ public class EditorActivity extends AppCompatActivity {
 
     private void savePetData(){
 
-        String petName = mNameEditText.getText().toString();
-        String petBreed = mBreedEditText.getText().toString();
-        float petWeight = Float.parseFloat(mWeightEditText.getText().toString());
+        String nameString = mNameEditText.getText().toString().trim();
+        String breedString = mBreedEditText.getText().toString().trim();
+        String weightString = mWeightEditText.getText().toString().trim();
+        int weight = Integer.parseInt(weightString);
+
         int petGender = mGenderSpinner.getSelectedItemPosition();
 
-        insertPet(petName, petBreed, petGender, petWeight);
+        insertPet(nameString, breedString, petGender, weight);
     }
-    private void insertPet(String petName, String petBreed, int petGender, float petWeight){
+    private void insertPet(String petName, String petBreed, int petGender, int petWeight){
 
         ContentValues values= new ContentValues();
 
